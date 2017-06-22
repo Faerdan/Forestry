@@ -8,6 +8,7 @@
 !/api
 !/test
 !/libs
+!/lang
 
 # files
 !/.gitignore
