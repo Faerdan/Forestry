@@ -142,6 +142,7 @@ public class ItemRegistryCore extends ItemRegistry {
 
 		// / CRAFTING CARPENTER
 		stickImpregnated = registerItem(new ItemForestry(), "oakStick");
+		OreDictionary.registerOre("stickImpregnated", stickImpregnated);
 		woodPulp = registerItem(new ItemForestry(), "woodPulp");
 		OreDictionary.registerOre("pulpWood", woodPulp);
 
