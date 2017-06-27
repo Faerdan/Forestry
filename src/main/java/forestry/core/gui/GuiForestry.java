@@ -13,6 +13,7 @@ package forestry.core.gui;
 import java.util.Collections;
 import java.util.List;
 
+import forestry.core.tiles.TilePowered;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -110,8 +111,8 @@ public abstract class GuiForestry<C extends Container, I extends IInventory> ext
 			ledgerManager.add(new ClimateLedger(ledgerManager, (IClimatised) inventory));
 		}
 
-		if (Config.enableEnergyStat && inventory instanceof IPowerHandler && ((IPowerHandler) inventory).getEnergyManager().getMaxEnergyStored() > 0) {
-			ledgerManager.add(new PowerLedger(ledgerManager, (IPowerHandler) inventory));
+		if (Config.enableEnergyStat && inventory instanceof TilePowered && ((TilePowered) inventory).getPower() > 0) {
+			ledgerManager.add(new PowerLedger(ledgerManager, (TilePowered)inventory));
 		}
 
 		if (Config.enableHints && inventory instanceof IHintSource) {

@@ -149,7 +149,7 @@ for.gui.effect=Effect
 for.gui.empty=Empty
 for.gui.emptysocket=Empty Socket
 for.gui.socket.remove=Removable with a Soldering Iron
-for.gui.energy=Energy
+for.gui.energy=Power
 for.gui.environment=Environment
 for.gui.evolution=Evolution
 for.gui.fecundated=Mated
@@ -340,6 +340,9 @@ for.gui.unknown=Unknown genome
 for.gui.warm=Warm
 for.gui.water=Water
 for.gui.worker=Worker
+for.gui.power=Power
+for.gui.torque=Torque
+for.gui.speed=Speed
 
 for.hints.accesscontrol.desc=A machine's owner can set it to three different types of access: Shared, restricted or private.
 for.hints.accesscontrol.tag=Access Control
@@ -363,7 +366,7 @@ for.hints.crating.desc=Main task of carpenters is the compression of your surplu
 for.hints.crating.tag=Crate your Surplus!
 for.hints.energybuffer.desc=Engines are capable of buffering a lesser amount of energy if it cannot be transmitted to the target.
 for.hints.energybuffer.tag=Buffering Energy!
-for.hints.energyunit.desc=An engine's energy output is measured in RF/t, which stands for "Redstone Flux per tick". Each second has 20 ticks.
+for.hints.energyunit.desc=An engine's power output is measured in kW, which is the speed * the torque.
 for.hints.energyunit.tag=Say Redstone Flux!
 for.hints.enginebronzefuels.desc=You can use a wide variety of fuels for your biogas engine: Biomass, seed oil, honey, milk and even water!
 for.hints.enginebronzefuels.tag=Use all the fuels!
@@ -796,7 +799,7 @@ for.errors.tooArid.help=The dry climate here has made the bees parched and unabl
 
 # MACHINES
 for.errors.noPower.desc=No Power
-for.errors.noPower.help=This machine requires RF energy from an engine to function.
+for.errors.noPower.help=This machine requires power (speed*torque) from an engine to function.
 for.errors.noRedstone.desc=Requires Redstone
 for.errors.noRedstone.help=This machine requires a redstone signal to activate it.
 for.errors.disabledRedstone.desc=Disabled by Redstone

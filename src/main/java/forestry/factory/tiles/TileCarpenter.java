@@ -50,7 +50,7 @@ import forestry.factory.inventory.InventoryGhostCrafting;
 import forestry.factory.recipes.CarpenterRecipeManager;
 
 public class TileCarpenter extends TilePowered implements ISidedInventory, ILiquidTankTile, IFluidHandler, IItemStackDisplay {
-	private static final int TICKS_PER_RECIPE_TIME = 1;
+	private static final int TICKS_PER_RECIPE_TIME = 4;
 	private static final int ENERGY_PER_WORK_CYCLE = 2040;
 	private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
 
@@ -67,8 +67,10 @@ public class TileCarpenter extends TilePowered implements ISidedInventory, ILiqu
 	}
 
 	public TileCarpenter() {
-		super("carpenter", 1100, 4000);
-		setEnergyPerWorkCycle(ENERGY_PER_WORK_CYCLE);
+		super("carpenter", 128, 1, 4096);
+		setPowerToSpeedBoost(1, 4096, 1, 10);
+
+		//setEnergyPerWorkCycle(ENERGY_PER_WORK_CYCLE);
 		resourceTank = new FilteredTank(Constants.PROCESSOR_TANK_CAPACITY, CarpenterRecipeManager.getRecipeFluids());
 
 		craftingInventory = new InventoryGhostCrafting<>(this, 10);
@@ -117,7 +119,7 @@ public class TileCarpenter extends TilePowered implements ISidedInventory, ILiqu
 			if (currentRecipe != null) {
 				int recipeTime = currentRecipe.getPackagingTime();
 				setTicksPerWorkCycle(recipeTime * TICKS_PER_RECIPE_TIME);
-				setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
+				//setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
 
 				ItemStack craftingResult = currentRecipe.getCraftingGridRecipe().getRecipeOutput();
 				craftPreviewInventory.setInventorySlotContents(0, craftingResult);

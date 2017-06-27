@@ -49,9 +49,9 @@ import forestry.factory.inventory.InventorySqueezer;
 import forestry.factory.recipes.SqueezerRecipeManager;
 
 public class TileSqueezer extends TilePowered implements ISocketable, ISidedInventory, ILiquidTankTile, IFluidHandler, ISpeedUpgradable {
-	private static final int TICKS_PER_RECIPE_TIME = 1;
+	private static final int TICKS_PER_RECIPE_TIME = 4;
 	private static final int ENERGY_PER_WORK_CYCLE = 2000;
-	private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
+	//private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
 
 	private final InventoryAdapter sockets = new InventoryAdapter(1, "sockets");
 
@@ -62,7 +62,9 @@ public class TileSqueezer extends TilePowered implements ISocketable, ISidedInve
 	private ISqueezerRecipe currentRecipe;
 
 	public TileSqueezer() {
-		super("squeezer", 1100, Constants.MACHINE_MAX_ENERGY);
+		super("squeezer", 128, 1, 2048);
+		setPowerToSpeedBoost(1, 2048, 1, 10);
+
 		this.inventory = new InventorySqueezer(this);
 		setInternalInventory(this.inventory);
 		this.productTank = new StandardTank(Constants.PROCESSOR_TANK_CAPACITY);
@@ -162,7 +164,7 @@ public class TileSqueezer extends TilePowered implements ISocketable, ISidedInve
 			if (currentRecipe != null) {
 				int recipeTime = currentRecipe.getProcessingTime();
 				setTicksPerWorkCycle(recipeTime * TICKS_PER_RECIPE_TIME);
-				setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
+				//setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
 			}
 		}
 

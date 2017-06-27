@@ -11,15 +11,14 @@
 package forestry.core.gui.ledgers;
 
 import forestry.core.render.TextureManager;
-import forestry.core.tiles.IPowerHandler;
+import forestry.core.tiles.TilePowered;
 import forestry.core.utils.StringUtil;
-import forestry.energy.EnergyManager;
 
 public class PowerLedger extends Ledger {
 
-	private final IPowerHandler tile;
+	private final TilePowered tile;
 
-	public PowerLedger(LedgerManager manager, IPowerHandler tile) {
+	public PowerLedger(LedgerManager manager, TilePowered tile) {
 		super(manager, "power");
 		this.tile = tile;
 		maxHeight = 94;
@@ -40,23 +39,21 @@ public class PowerLedger extends Ledger {
 		int xHeader = x + 22;
 		int xBody = x + 12;
 
-		EnergyManager energyManager = tile.getEnergyManager();
-
 		drawHeader(StringUtil.localize("gui.energy"), xHeader, y + 8);
 
-		drawSubheader(StringUtil.localize("gui.stored") + ':', xBody, y + 20);
-		drawText(energyManager.getTotalEnergyStored() + " RF", xBody, y + 32);
+		drawSubheader(StringUtil.localize("gui.power") + (this.tile.getMinPower() > 1 ? " (Min " + this.tile.getMinPower() + "):" : ":"), xBody, y + 20);
+		drawText(this.tile.getPower() + " kW", xBody, y + 32);
 
-		drawSubheader(StringUtil.localize("gui.maxenergy") + ':', xBody, y + 44);
-		drawText(energyManager.getMaxEnergyStored() + " RF", xBody, y + 56);
+		drawSubheader(StringUtil.localize("gui.torque") + (this.tile.getMinTorque() > 1 ? " (Min " + this.tile.getMinTorque() + "):" : ":"), xBody, y + 44);
+		drawText(this.tile.getTorque() + " Nm", xBody, y + 56);
 
-		drawSubheader(StringUtil.localize("gui.maxenergyreceive") + ':', xBody, y + 68);
-		drawText(energyManager.getMaxEnergyReceived() + " RF", xBody, y + 80);
+		drawSubheader(StringUtil.localize("gui.speed") + (this.tile.getMinOmega() > 1 ? " (Min " + this.tile.getMinOmega() + "):" : ":"), xBody, y + 68);
+		drawText(this.tile.getOmega() + " Rad/s", xBody, y + 80);
 	}
 
 	@Override
 	public String getTooltip() {
-		return tile.getEnergyManager().getTotalEnergyStored() + " RF";
+		return this.tile.getPower() + " kW";
 	}
 
 }

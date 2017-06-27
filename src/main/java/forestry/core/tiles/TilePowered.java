@@ -12,6 +12,9 @@ package forestry.core.tiles;
 
 import java.io.IOException;
 
+import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
+import buildcraft.api.core.BCLog;
+import micdoodle8.mods.galacticraft.core.util.GCLog;
 import net.minecraft.nbt.NBTTagCompound;
 
 import net.minecraftforge.common.util.ForgeDirection;
@@ -31,14 +34,13 @@ import forestry.energy.EnergyManager;
 import buildcraft.api.tiles.IHasWork;
 
 @Optional.Interface(iface = "buildcraft.api.tiles.IHasWork", modid = "BuildCraftAPI|tiles")
-public abstract class TilePowered extends TileBase implements IRenderableTile, IPowerHandler, IHasWork, ISpeedUpgradable, IStreamableGui {
+public abstract class TilePowered extends TileBase implements IRenderableTile, IHasWork, ISpeedUpgradable, IStreamableGui, ShaftPowerReceiver {
 	private static final int WORK_TICK_INTERVAL = 5; // one Forestry work tick happens every WORK_TICK_INTERVAL game ticks
 
-	private final EnergyManager energyManager;
+	//private final EnergyManager energyManager;
 
 	private int workCounter;
 	private int ticksPerWorkCycle;
-	private int energyPerWorkCycle;
 
 	protected float speedMultiplier = 1.0f;
 	protected float powerMultiplier = 1.0f;
@@ -46,10 +48,14 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	// the number of work ticks that this tile has had no power
 	private int noPowerTime = 0;
 
-	protected TilePowered(String hintKey, int maxTransfer, int capacity) {
+	protected TilePowered(String hintKey, int minTorque, int minOmega, int minPower) {
 		super(hintKey);
-		this.energyManager = new EnergyManager(maxTransfer, capacity);
-		this.energyManager.setReceiveOnly();
+		//this.energyManager = new EnergyManager(maxTransfer, capacity);
+		//this.energyManager.setReceiveOnly();
+
+		setMinTorque(minTorque);
+		setMinOmega(minOmega);
+		setMinPower(minPower);
 
 		this.ticksPerWorkCycle = 4;
 
@@ -65,19 +71,48 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		this.workCounter = 0;
 	}
 
+	public void setPowerToSpeedBoost(int maxTorque, int maxOmega, int maxPower, float speedMultiplier)
+	{
+		rotaryHasSpeedBoost = true;
+		rotarySpeedBoostMaxTorque = (maxTorque >= getMinTorque()) ? maxTorque : getMinTorque();
+		rotarySpeedBoostMaxOmega = (maxOmega >= getMinOmega()) ? maxOmega : getMinOmega();
+		rotarySpeedBoostMaxPower = (maxPower >= getMinPower()) ? maxPower : getMinPower();
+		rotarySpeedBoostMultiplier = speedMultiplier;
+	}
+
+	public float getCurrentPowerToSpeedBoost()
+	{
+		rotaryCurrentSpeedBoostMultiplier = 1;
+		if (rotaryHasSpeedBoost)
+		{
+			float torqueScaler = 1;
+			if (rotarySpeedBoostMaxTorque > getMinTorque() && getTorque() > getMinTorque())
+			{
+				torqueScaler = (float)(getTorque() - getMinTorque()) / (float)(rotarySpeedBoostMaxTorque - getMinTorque());
+			}
+			float omegaScaler = 1;
+			if (rotarySpeedBoostMaxOmega > getMinOmega() && getOmega() > getMinOmega())
+			{
+				omegaScaler = (float)(getOmega() - getMinOmega()) / (float)(rotarySpeedBoostMaxOmega - getMinOmega());
+			}
+			float powerScaler = 1;
+			if (rotarySpeedBoostMaxPower > getMinPower() && getPower() > getMinPower())
+			{
+				powerScaler = (float)(getPower() - getMinPower()) / (float)(rotarySpeedBoostMaxPower - getMinPower());
+			}
+			rotaryCurrentSpeedBoostMultiplier = 1F + ((rotarySpeedBoostMultiplier - 1F) * Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)));
+			BCLog.logger.info("TilePowered torqueScaler: " + torqueScaler + ", omegaScaler: " + omegaScaler + ", powerScaler: " + powerScaler + ", min: " + Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)) + ", current: " + rotaryCurrentSpeedBoostMultiplier);
+		}
+		return rotaryCurrentSpeedBoostMultiplier;
+	}
+
 	public int getTicksPerWorkCycle() {
 		if (worldObj.isRemote) {
 			return ticksPerWorkCycle;
 		}
-		return Math.round(ticksPerWorkCycle / speedMultiplier);
-	}
+		int ticks = (int)Math.floor(ticksPerWorkCycle / getCurrentPowerToSpeedBoost());
 
-	public void setEnergyPerWorkCycle(int energyPerWorkCycle) {
-		this.energyPerWorkCycle = EnergyManager.scaleForDifficulty(energyPerWorkCycle);
-	}
-
-	public int getEnergyPerWorkCycle() {
-		return Math.round(energyPerWorkCycle * powerMultiplier);
+		return Math.round(ticks / speedMultiplier);
 	}
 
 	/* STATE INFORMATION */
@@ -101,22 +136,25 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 
 		IErrorLogic errorLogic = getErrorLogic();
 
-		boolean disabled = isRedstoneActivated();
+
+		// Disabled redstone disabling...
+		/*boolean disabled = isRedstoneActivated();
 		errorLogic.setCondition(disabled, EnumErrorCode.DISABLED_BY_REDSTONE);
 		if (disabled) {
 			return;
-		}
+		}*/
 
 		if (!hasWork()) {
 			return;
 		}
 
+		//BCLog.logger.info("TilePowered Torque: " + rotaryTorque + " / " + getMinTorque(getTorque()) + ", Torque: " + rotaryOmega + " / " + getMinOmega(getOmega()) + ", Power: " + rotaryPower + " / " + getMinPower(getPower()));
+
 		int ticksPerWorkCycle = getTicksPerWorkCycle();
 
 		if (workCounter < ticksPerWorkCycle) {
-			int energyPerWorkCycle = getEnergyPerWorkCycle();
-			boolean consumedEnergy = energyManager.consumeEnergyToDoWork(ticksPerWorkCycle, energyPerWorkCycle);
-			if (consumedEnergy) {
+			if (rotaryTorque >= getMinTorque(getTorque()) && rotaryOmega >= getMinOmega(getOmega()) && rotaryPower >= getMinPower(getPower())) {
+				//BCLog.logger.info("TilePowered (CanWork) Omega: " + rotaryOmega + ",Torque: " + rotaryTorque + ", Power: " + rotaryPower);
 				errorLogic.setCondition(false, EnumErrorCode.NO_POWER);
 				workCounter++;
 				noPowerTime = 0;
@@ -149,25 +187,25 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		energyManager.writeToNBT(nbt);
+		//energyManager.writeToNBT(nbt);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		energyManager.readFromNBT(nbt);
+		//energyManager.readFromNBT(nbt);
 	}
 
 	@Override
 	public void writeGuiData(DataOutputStreamForestry data) throws IOException {
-		energyManager.writeData(data);
+		//energyManager.writeData(data);
 		data.writeVarInt(workCounter);
 		data.writeVarInt(getTicksPerWorkCycle());
 	}
 
 	@Override
 	public void readGuiData(DataInputStreamForestry data) throws IOException {
-		energyManager.readData(data);
+		//energyManager.readData(data);
 		workCounter = data.readVarInt();
 		ticksPerWorkCycle = data.readVarInt();
 	}
@@ -192,7 +230,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	}
 
 	/* IPowerHandler */
-	@Override
+	/*@Override
 	public EnergyManager getEnergyManager() {
 		return energyManager;
 	}
@@ -220,5 +258,133 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	@Override
 	public boolean canConnectEnergy(ForgeDirection from) {
 		return energyManager.canConnectEnergy(from);
+	}*/
+
+	/* Rotary Power */
+	private int rotaryMinTorque = 1;
+	private int rotaryMinOmega = 1;
+	private long rotaryMinPower = 1;
+
+	private boolean rotaryHasSpeedBoost = false;
+	public int rotarySpeedBoostMaxTorque;
+	public int rotarySpeedBoostMaxOmega;
+	public long rotarySpeedBoostMaxPower;
+	private float rotarySpeedBoostMultiplier;
+	public float rotaryCurrentSpeedBoostMultiplier = 1;
+
+	private int rotaryOmega;
+	private int rotaryTorque;
+	private long rotaryPower;
+	private int rotaryIORenderAlpha;
+
+	@Override
+	public void setOmega(int i) {
+		//BCLog.logger.info("Quarry setOmega: " + i);
+		rotaryOmega = i;
+	}
+
+	@Override
+	public void setTorque(int i) {
+		//BCLog.logger.info("Quarry setTorque: " + i);
+		rotaryTorque = i;
+	}
+
+	@Override
+	public void setPower(long l) {
+		//BCLog.logger.info("Quarry setPower: " + l);
+		rotaryPower = l;
+	}
+
+	@Override
+	public void noInputMachine() {
+		rotaryOmega = 0;
+		rotaryTorque = 0;
+		rotaryPower = 0;
+	}
+
+	@Override
+	public boolean canReadFrom(ForgeDirection forgeDirection) {
+		return (forgeDirection == ForgeDirection.EAST || forgeDirection == ForgeDirection.WEST || forgeDirection == ForgeDirection.NORTH);
+	}
+
+	@Override
+	public boolean isReceiving() {
+		return true;
+	}
+
+	public int getMinTorque() {
+		return getMinTorque(getTorque());
+	}
+
+	@Override
+	public int getMinTorque(int i) {
+		return (rotaryMinTorque * (int)Math.ceil(powerMultiplier));
+	}
+
+	public int getMinOmega() {
+		return getMinOmega(getOmega());
+	}
+
+	public int getMinOmega(int i) {
+		return rotaryMinOmega;
+	}
+
+	public long getMinPower() {
+		return getMinPower(getPower());
+	}
+
+	public long getMinPower(long l) {
+		return rotaryMinPower;
+	}
+
+	@Override
+	public int getOmega() {
+		return rotaryOmega;
+	}
+
+	@Override
+	public int getTorque() {
+		return rotaryTorque;
+	}
+
+	@Override
+	public long getPower() {
+		return rotaryPower;
+	}
+
+	@Override
+	public String getName() {
+		return "TilePowered";
+	}
+
+	@Override
+	public int getIORenderAlpha() {
+		return rotaryIORenderAlpha;
+	}
+
+	@Override
+	public void setIORenderAlpha(int i) {
+		rotaryIORenderAlpha = i;
+	}
+
+	public void setMinTorque(int i) {
+		if (i >= 1)
+		{
+			rotaryMinTorque = i;
+		}
+	}
+
+	public void setMinOmega(int i) {
+		if (i >= 1)
+		{
+			rotaryMinOmega = i;
+		}
+	}
+
+	public void setMinPower(long l) {
+		if (l >= 1)
+		{
+			rotaryMinPower = l;
+		}
 	}
 }

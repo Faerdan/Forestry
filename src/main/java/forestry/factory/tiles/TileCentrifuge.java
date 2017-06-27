@@ -50,7 +50,7 @@ import forestry.factory.triggers.FactoryTriggers;
 import buildcraft.api.statements.ITriggerExternal;
 
 public class TileCentrifuge extends TilePowered implements ISocketable, ISidedInventory {
-	private static final int TICKS_PER_RECIPE_TIME = 1;
+	private static final int TICKS_PER_RECIPE_TIME = 4;
 	private static final int ENERGY_PER_WORK_CYCLE = 3200;
 	private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 20;
 
@@ -61,7 +61,9 @@ public class TileCentrifuge extends TilePowered implements ISocketable, ISidedIn
 	private final Stack<ItemStack> pendingProducts = new Stack<>();
 
 	public TileCentrifuge() {
-		super("centrifuge", 800, Constants.MACHINE_MAX_ENERGY);
+		super("centrifuge", 1, 512, 4096);
+		setPowerToSpeedBoost(1, 8192, 1, 10);
+
 		setInternalInventory(new InventoryCentrifuge(this));
 	}
 
@@ -152,7 +154,7 @@ public class TileCentrifuge extends TilePowered implements ISocketable, ISidedIn
 			if (currentRecipe != null) {
 				int recipeTime = currentRecipe.getProcessingTime();
 				setTicksPerWorkCycle(recipeTime * TICKS_PER_RECIPE_TIME);
-				setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
+				//setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);
 			}
 		}
 	}

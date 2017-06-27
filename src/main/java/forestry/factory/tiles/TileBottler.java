@@ -49,7 +49,7 @@ import forestry.factory.triggers.FactoryTriggers;
 import buildcraft.api.statements.ITriggerExternal;
 
 public class TileBottler extends TilePowered implements ISidedInventory, ILiquidTankTile, IFluidHandler {
-	private static final int TICKS_PER_RECIPE_TIME = 5;
+	private static final int TICKS_PER_RECIPE_TIME = 8;
 	private static final int ENERGY_PER_RECIPE_TIME = 1000;
 
 	private final StandardTank resourceTank;
@@ -58,7 +58,8 @@ public class TileBottler extends TilePowered implements ISidedInventory, ILiquid
 	private BottlerRecipe currentRecipe;
 
 	public TileBottler() {
-		super("bottler", 1100, 4000);
+		super("bottler", 4, 256, 1);
+		setPowerToSpeedBoost(1, 1028, 1, 5);
 
 		setInternalInventory(new InventoryBottler(this));
 
@@ -122,7 +123,7 @@ public class TileBottler extends TilePowered implements ISidedInventory, ILiquid
 				fillTime *= viscosityMultiplier;
 
 				setTicksPerWorkCycle(Math.round(fillTime * TICKS_PER_RECIPE_TIME));
-				setEnergyPerWorkCycle(Math.round(fillTime * ENERGY_PER_RECIPE_TIME));
+				//setEnergyPerWorkCycle(Math.round(fillTime * ENERGY_PER_RECIPE_TIME));
 			}
 		}
 	}

@@ -51,7 +51,9 @@ public class TileStill extends TilePowered implements ISidedInventory, ILiquidTa
 	private FluidStack bufferedLiquid;
 
 	public TileStill() {
-		super("still", 1100, 8000);
+		super("still", 1, 32, 1024);
+		setPowerToSpeedBoost(1, 1, 4086, 5);
+
 		setInternalInventory(new InventoryStill(this));
 		resourceTank = new FilteredTank(Constants.PROCESSOR_TANK_CAPACITY, StillRecipeManager.recipeFluidInputs);
 		resourceTank.tankMode = StandardTank.TankMode.INPUT;
@@ -131,7 +133,7 @@ public class TileStill extends TilePowered implements ISidedInventory, ILiquidTa
 			currentRecipe = StillRecipeManager.findMatchingRecipe(recipeLiquid);
 
 			int recipeTime = currentRecipe == null ? 0 : currentRecipe.getCyclesPerUnit();
-			setEnergyPerWorkCycle(ENERGY_PER_RECIPE_TIME * recipeTime);
+			//setEnergyPerWorkCycle(ENERGY_PER_RECIPE_TIME * recipeTime);
 			setTicksPerWorkCycle(recipeTime);
 		}
 	}
