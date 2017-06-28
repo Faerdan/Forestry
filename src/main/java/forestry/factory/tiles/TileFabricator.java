@@ -65,6 +65,8 @@ public class TileFabricator extends TilePowered implements ISlotPickupWatcher, I
 
 	public TileFabricator() {
 		super("fabricator", 1, 1, 1024);
+		//setPowerToSpeedBoost(1, 4096, 1, 5);
+
 		//setEnergyPerWorkCycle(200);
 		craftingInventory = new InventoryGhostCrafting<>(this, InventoryGhostCrafting.SLOT_CRAFTING_COUNT);
 		setInternalInventory(new InventoryFabricator(this));

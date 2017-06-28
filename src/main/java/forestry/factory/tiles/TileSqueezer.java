@@ -62,8 +62,8 @@ public class TileSqueezer extends TilePowered implements ISocketable, ISidedInve
 	private ISqueezerRecipe currentRecipe;
 
 	public TileSqueezer() {
-		super("squeezer", 128, 1, 2048);
-		setPowerToSpeedBoost(1, 2048, 1, 10);
+		super("squeezer", 128, 1, 4096);
+		setPowerToSpeedBoost(1, 128, 1, 5);
 
 		this.inventory = new InventorySqueezer(this);
 		setInternalInventory(this.inventory);

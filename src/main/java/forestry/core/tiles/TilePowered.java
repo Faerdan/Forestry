@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import buildcraft.api.core.BCLog;
-import micdoodle8.mods.galacticraft.core.util.GCLog;
 import net.minecraft.nbt.NBTTagCompound;
 
 import net.minecraftforge.common.util.ForgeDirection;
@@ -29,7 +28,6 @@ import forestry.core.network.DataInputStreamForestry;
 import forestry.core.network.DataOutputStreamForestry;
 import forestry.core.network.IStreamableGui;
 import forestry.core.render.TankRenderInfo;
-import forestry.energy.EnergyManager;
 
 import buildcraft.api.tiles.IHasWork;
 
@@ -45,13 +43,23 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	protected float speedMultiplier = 1.0f;
 	protected float powerMultiplier = 1.0f;
 
+	private boolean rotaryHasSpeedBoost = false;
+	private int rotarySpeedBoostMaxTorque;
+	private int rotarySpeedBoostMaxOmega;
+	private long rotarySpeedBoostMaxPower;
+	private float rotarySpeedBoostMultiplier;
+
 	// the number of work ticks that this tile has had no power
 	private int noPowerTime = 0;
+
+	private String nameKey;
 
 	protected TilePowered(String hintKey, int minTorque, int minOmega, int minPower) {
 		super(hintKey);
 		//this.energyManager = new EnergyManager(maxTransfer, capacity);
 		//this.energyManager.setReceiveOnly();
+
+		nameKey = hintKey;
 
 		setMinTorque(minTorque);
 		setMinOmega(minOmega);
@@ -82,7 +90,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 
 	public float getCurrentPowerToSpeedBoost()
 	{
-		rotaryCurrentSpeedBoostMultiplier = 1;
+		float rotaryCurrentSpeedBoostMultiplier = 1F;
 		if (rotaryHasSpeedBoost)
 		{
 			float torqueScaler = 1;
@@ -265,13 +273,6 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	private int rotaryMinOmega = 1;
 	private long rotaryMinPower = 1;
 
-	private boolean rotaryHasSpeedBoost = false;
-	public int rotarySpeedBoostMaxTorque;
-	public int rotarySpeedBoostMaxOmega;
-	public long rotarySpeedBoostMaxPower;
-	private float rotarySpeedBoostMultiplier;
-	public float rotaryCurrentSpeedBoostMultiplier = 1;
-
 	private int rotaryOmega;
 	private int rotaryTorque;
 	private long rotaryPower;
@@ -304,12 +305,12 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 
 	@Override
 	public boolean canReadFrom(ForgeDirection forgeDirection) {
-		return (forgeDirection == ForgeDirection.EAST || forgeDirection == ForgeDirection.WEST || forgeDirection == ForgeDirection.NORTH);
+		return true; // (forgeDirection == ForgeDirection.EAST || forgeDirection == ForgeDirection.WEST || forgeDirection == ForgeDirection.NORTH);
 	}
 
 	@Override
 	public boolean isReceiving() {
-		return true;
+		return hasWork();
 	}
 
 	public int getMinTorque() {
@@ -354,7 +355,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 
 	@Override
 	public String getName() {
-		return "TilePowered";
+		return nameKey;
 	}
 
 	@Override

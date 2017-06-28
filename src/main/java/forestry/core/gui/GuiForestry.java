@@ -111,7 +111,7 @@ public abstract class GuiForestry<C extends Container, I extends IInventory> ext
 			ledgerManager.add(new ClimateLedger(ledgerManager, (IClimatised) inventory));
 		}
 
-		if (Config.enableEnergyStat && inventory instanceof TilePowered && ((TilePowered) inventory).getPower() > 0) {
+		if (Config.enableEnergyStat && inventory instanceof TilePowered) { // && ((TilePowered) inventory).getPower() > 0
 			ledgerManager.add(new PowerLedger(ledgerManager, (TilePowered)inventory));
 		}
 

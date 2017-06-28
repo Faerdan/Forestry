@@ -52,7 +52,7 @@ import forestry.factory.recipes.CarpenterRecipeManager;
 public class TileCarpenter extends TilePowered implements ISidedInventory, ILiquidTankTile, IFluidHandler, IItemStackDisplay {
 	private static final int TICKS_PER_RECIPE_TIME = 4;
 	private static final int ENERGY_PER_WORK_CYCLE = 2040;
-	private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
+	//private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
 
 	private final FilteredTank resourceTank;
 	private final TankManager tankManager;
@@ -68,7 +68,7 @@ public class TileCarpenter extends TilePowered implements ISidedInventory, ILiqu
 
 	public TileCarpenter() {
 		super("carpenter", 128, 1, 4096);
-		setPowerToSpeedBoost(1, 4096, 1, 10);
+		setPowerToSpeedBoost(1, 128, 1, 5);
 
 		//setEnergyPerWorkCycle(ENERGY_PER_WORK_CYCLE);
 		resourceTank = new FilteredTank(Constants.PROCESSOR_TANK_CAPACITY, CarpenterRecipeManager.getRecipeFluids());

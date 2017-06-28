@@ -52,7 +52,7 @@ public class TileStill extends TilePowered implements ISidedInventory, ILiquidTa
 
 	public TileStill() {
 		super("still", 1, 32, 1024);
-		setPowerToSpeedBoost(1, 1, 4086, 5);
+		setPowerToSpeedBoost(1, 128, 1, 5);
 
 		setInternalInventory(new InventoryStill(this));
 		resourceTank = new FilteredTank(Constants.PROCESSOR_TANK_CAPACITY, StillRecipeManager.recipeFluidInputs);

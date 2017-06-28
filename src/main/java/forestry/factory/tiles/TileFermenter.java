@@ -68,7 +68,7 @@ public class TileFermenter extends TilePowered implements ISidedInventory, ILiqu
 	private int fuelCurrentFerment = 0;
 
 	public TileFermenter() {
-		super("fermenter", 128, 256, 0);
+		super("fermenter", 1, 32, 1024);
 		//setEnergyPerWorkCycle(4200);
 		setInternalInventory(new InventoryFermenter(this));
 		resourceTank = new FilteredTank(Constants.PROCESSOR_TANK_CAPACITY, FermenterRecipeManager.recipeFluidInputs);
