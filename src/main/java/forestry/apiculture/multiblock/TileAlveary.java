@@ -46,6 +46,8 @@ import forestry.core.tiles.ITitled;
 import micdoodle8.mods.galacticraft.api.world.OxygenHooks;
 
 public abstract class TileAlveary extends MultiblockTileEntityForestry<MultiblockLogicAlveary> implements IBeeHousing, IAlvearyComponent, IRestrictedAccess, IStreamableGui, ITitled, IClimatised, IHintSource {
+	public static final int MIN_OMEGA = 128;
+
 	private final String unlocalizedTitle;
 
 	protected TileAlveary() {

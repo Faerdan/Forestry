@@ -17,7 +17,7 @@ public class TileAlvearyFan extends TileAlvearyClimatiser {
 	private static final FanDefinition definition = new FanDefinition();
 
 	public TileAlvearyFan() {
-		super(definition);
+		super(definition, "alveary fan", 4);
 	}
 
 	private static class FanDefinition implements IClimitiserDefinition {

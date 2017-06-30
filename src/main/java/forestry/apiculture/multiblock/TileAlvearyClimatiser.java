@@ -10,6 +10,7 @@
  ******************************************************************************/
 package forestry.apiculture.multiblock;
 
+import Reika.RotaryCraft.API.Power.IShaftPowerReceiver;
 import net.minecraft.nbt.NBTTagCompound;
 
 import net.minecraftforge.common.util.ForgeDirection;
@@ -19,14 +20,8 @@ import forestry.api.multiblock.IAlvearyComponent;
 import forestry.apiculture.network.packets.PacketActiveUpdate;
 import forestry.core.proxy.Proxies;
 import forestry.core.tiles.IActivatable;
-import forestry.energy.EnergyManager;
 
-import cofh.api.energy.IEnergyHandler;
-
-public abstract class TileAlvearyClimatiser extends TileAlveary implements IEnergyHandler, IActivatable, IAlvearyComponent.Climatiser {
-
-	private static final int WORK_CYCLES = 1;
-	private static final int ENERGY_PER_OPERATION = 50;
+public abstract class TileAlvearyClimatiser extends TileAlveary implements IShaftPowerReceiver, IActivatable, IAlvearyComponent.Climatiser {
 
 	protected interface IClimitiserDefinition {
 		float getChangePerTransfer();
@@ -40,35 +35,34 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IEner
 		int getIconOn();
 	}
 
-	private final EnergyManager energyManager;
 	private final IClimitiserDefinition definition;
 
 	private int workingTime = 0;
 
+	private String nameKey;
+
 	// CLIENT
 	private boolean active;
 
-	protected TileAlvearyClimatiser(IClimitiserDefinition definition) {
+	protected TileAlvearyClimatiser(IClimitiserDefinition definition, String nameKey, int minTorque) {
 		this.definition = definition;
+		this.nameKey = nameKey;
 
-		this.energyManager = new EnergyManager(1000, 2000);
-		this.energyManager.setReceiveOnly();
+		setMinTorque(minTorque);
+		setMinOmega(128);
 	}
 
 	/* UPDATING */
 	@Override
 	public void changeClimate(int tick, IClimateControlled climateControlled) {
-		if (workingTime < 20 && energyManager.consumeEnergyToDoWork(WORK_CYCLES, ENERGY_PER_OPERATION)) {
-			// one tick of work for every 10 RF
-			workingTime += ENERGY_PER_OPERATION / 10;
-		}
-
-		if (workingTime > 0) {
-			workingTime--;
+		if (getTorque() >= getMinTorque() && getOmega() >= getMinOmega() && getPower() >= getMinPower()) {
 			climateControlled.addTemperatureChange(definition.getChangePerTransfer(), definition.getBoundaryDown(), definition.getBoundaryUp());
+			setActive(true);
 		}
-
-		setActive(workingTime > 0);
+		else {
+			setActive(false);
+		}
+		noInputMachine();
 	}
 
 	/* TEXTURES */
@@ -85,7 +79,6 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IEner
 	@Override
 	public void readFromNBT(NBTTagCompound nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
-		energyManager.readFromNBT(nbttagcompound);
 		workingTime = nbttagcompound.getInteger("Heating");
 		setActive(workingTime > 0);
 	}
@@ -93,7 +86,6 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IEner
 	@Override
 	public void writeToNBT(NBTTagCompound nbttagcompound) {
 		super.writeToNBT(nbttagcompound);
-		energyManager.writeToNBT(nbttagcompound);
 		nbttagcompound.setInteger("Heating", workingTime);
 	}
 
@@ -133,30 +125,133 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IEner
 		}
 	}
 
-	/* IEnergyHandler */
+	/* Rotary Power */
+	private int rotaryMinTorque = 1;
+	private int rotaryMinOmega = 1;
+	private long rotaryMinPower = 1;
+
+	private int rotaryOmega;
+	private int rotaryTorque;
+	private long rotaryPower;
+	private int rotaryIORenderAlpha;
+
 	@Override
-	public int receiveEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
-		return energyManager.receiveEnergy(from, maxReceive, simulate);
+	public void setOmega(int i) {
+		//BCLog.logger.info("Quarry setOmega: " + i);
+		rotaryOmega = i;
 	}
 
 	@Override
-	public int extractEnergy(ForgeDirection from, int maxExtract, boolean simulate) {
-		return energyManager.extractEnergy(from, maxExtract, simulate);
+	public void setTorque(int i) {
+		//BCLog.logger.info("Quarry setTorque: " + i);
+		rotaryTorque = i;
 	}
 
 	@Override
-	public int getEnergyStored(ForgeDirection from) {
-		return energyManager.getEnergyStored(from);
+	public void setPower(long l) {
+		//BCLog.logger.info("Quarry setPower: " + l);
+		rotaryPower = l;
 	}
 
 	@Override
-	public int getMaxEnergyStored(ForgeDirection from) {
-		return energyManager.getMaxEnergyStored(from);
+	public void noInputMachine() {
+		rotaryOmega = 0;
+		rotaryTorque = 0;
+		rotaryPower = 0;
 	}
 
 	@Override
-	public boolean canConnectEnergy(ForgeDirection from) {
-		return energyManager.canConnectEnergy(from);
+	public boolean canReadFrom(ForgeDirection forgeDirection) {
+		return true; // (forgeDirection == ForgeDirection.EAST || forgeDirection == ForgeDirection.WEST || forgeDirection == ForgeDirection.NORTH);
+	}
+
+	@Override
+	public boolean isReceiving() {
+		return true;
+	}
+
+	@Override
+	public int getMinTorque() {
+		return getMinTorque(getTorque());
+	}
+
+	@Override
+	public int getMinTorque(int i) {
+		return rotaryMinTorque;
+	}
+
+	@Override
+	public int getMinOmega() {
+		return getMinOmega(getOmega());
+	}
+
+	@Override
+	public int getMinOmega(int i) {
+		return rotaryMinOmega;
+	}
+
+	@Override
+	public long getMinPower() {
+		return getMinPower(getPower());
+	}
+
+	@Override
+	public long getMinPower(long l) {
+		return rotaryMinPower;
+	}
+
+	@Override
+	public int getOmega() {
+		return rotaryOmega;
+	}
+
+	@Override
+	public int getTorque() {
+		return rotaryTorque;
+	}
+
+	@Override
+	public long getPower() {
+		return rotaryPower;
+	}
+
+	@Override
+	public String getName() {
+		return nameKey;
+	}
+
+	@Override
+	public int getIORenderAlpha() {
+		return rotaryIORenderAlpha;
+	}
+
+	@Override
+	public void setIORenderAlpha(int i) {
+		rotaryIORenderAlpha = i;
+	}
+
+	@Override
+	public void setMinTorque(int i) {
+		if (i >= 1)
+		{
+			rotaryMinTorque = i;
+		}
+	}
+
+	@Override
+	public void setMinOmega(int i) {
+		if (i >= 1)
+		{
+			rotaryMinOmega = i;
+		}
+	}
+
+	@Override
+	public void setMinPower(long l) {
+		if (l >= 1)
+		{
+			rotaryMinPower = l;
+		}
 	}
 
 }

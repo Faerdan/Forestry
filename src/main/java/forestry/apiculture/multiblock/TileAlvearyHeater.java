@@ -17,7 +17,7 @@ public class TileAlvearyHeater extends TileAlvearyClimatiser {
 	private static final HeaterDefinition definition = new HeaterDefinition();
 
 	public TileAlvearyHeater() {
-		super(definition);
+		super(definition, "alveary heater", 16);
 	}
 
 	private static class HeaterDefinition implements IClimitiserDefinition {

@@ -12,7 +12,7 @@ package forestry.core.tiles;
 
 import java.io.IOException;
 
-import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
+import Reika.RotaryCraft.API.Power.IShaftPowerReceiver;
 import buildcraft.api.core.BCLog;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -32,7 +32,7 @@ import forestry.core.render.TankRenderInfo;
 import buildcraft.api.tiles.IHasWork;
 
 @Optional.Interface(iface = "buildcraft.api.tiles.IHasWork", modid = "BuildCraftAPI|tiles")
-public abstract class TilePowered extends TileBase implements IRenderableTile, IHasWork, ISpeedUpgradable, IStreamableGui, ShaftPowerReceiver {
+public abstract class TilePowered extends TileBase implements IRenderableTile, IHasWork, ISpeedUpgradable, IStreamableGui, IShaftPowerReceiver {
 	private static final int WORK_TICK_INTERVAL = 5; // one Forestry work tick happens every WORK_TICK_INTERVAL game ticks
 
 	//private final EnergyManager energyManager;
@@ -109,7 +109,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 				powerScaler = (float)(getPower() - getMinPower()) / (float)(rotarySpeedBoostMaxPower - getMinPower());
 			}
 			rotaryCurrentSpeedBoostMultiplier = 1F + ((rotarySpeedBoostMultiplier - 1F) * Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)));
-			BCLog.logger.info("TilePowered torqueScaler: " + torqueScaler + ", omegaScaler: " + omegaScaler + ", powerScaler: " + powerScaler + ", min: " + Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)) + ", current: " + rotaryCurrentSpeedBoostMultiplier);
+			//BCLog.logger.info("TilePowered torqueScaler: " + torqueScaler + ", omegaScaler: " + omegaScaler + ", powerScaler: " + powerScaler + ", min: " + Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)) + ", current: " + rotaryCurrentSpeedBoostMultiplier);
 		}
 		return rotaryCurrentSpeedBoostMultiplier;
 	}
@@ -153,6 +153,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		}*/
 
 		if (!hasWork()) {
+			noInputMachine();
 			return;
 		}
 
@@ -179,6 +180,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 				workCounter = 0;
 			}
 		}
+		noInputMachine();
 	}
 
 	protected abstract boolean workCycle();
@@ -195,12 +197,18 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
+		nbt.setInteger("torque", getTorque());
+		nbt.setInteger("omega", getOmega());
+		nbt.setLong("power", getPower());
 		//energyManager.writeToNBT(nbt);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
+		setTorque(nbt.getInteger("torque"));
+		setOmega(nbt.getInteger("omega"));
+		setPower(nbt.getLong("power"));
 		//energyManager.readFromNBT(nbt);
 	}
 
@@ -310,9 +318,10 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 
 	@Override
 	public boolean isReceiving() {
-		return hasWork();
+		return true;
 	}
 
+	@Override
 	public int getMinTorque() {
 		return getMinTorque(getTorque());
 	}
@@ -322,18 +331,22 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		return (rotaryMinTorque * (int)Math.ceil(powerMultiplier));
 	}
 
+	@Override
 	public int getMinOmega() {
 		return getMinOmega(getOmega());
 	}
 
+	@Override
 	public int getMinOmega(int i) {
 		return rotaryMinOmega;
 	}
 
+	@Override
 	public long getMinPower() {
 		return getMinPower(getPower());
 	}
 
+	@Override
 	public long getMinPower(long l) {
 		return rotaryMinPower;
 	}
@@ -368,6 +381,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		rotaryIORenderAlpha = i;
 	}
 
+	@Override
 	public void setMinTorque(int i) {
 		if (i >= 1)
 		{
@@ -375,6 +389,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		}
 	}
 
+	@Override
 	public void setMinOmega(int i) {
 		if (i >= 1)
 		{
@@ -382,6 +397,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		}
 	}
 
+	@Override
 	public void setMinPower(long l) {
 		if (l >= 1)
 		{
