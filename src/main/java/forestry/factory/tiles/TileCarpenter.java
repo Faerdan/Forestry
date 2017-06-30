@@ -51,7 +51,7 @@ import forestry.factory.recipes.CarpenterRecipeManager;
 
 public class TileCarpenter extends TilePowered implements ISidedInventory, ILiquidTankTile, IFluidHandler, IItemStackDisplay {
 	private static final int TICKS_PER_RECIPE_TIME = 4;
-	private static final int ENERGY_PER_WORK_CYCLE = 2040;
+	//private static final int ENERGY_PER_WORK_CYCLE = 2040;
 	//private static final int ENERGY_PER_RECIPE_TIME = ENERGY_PER_WORK_CYCLE / 10;
 
 	private final FilteredTank resourceTank;
