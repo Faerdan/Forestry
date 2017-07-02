@@ -36,7 +36,7 @@ public class JubilanceRequiresResource implements IJubilanceProvider {
 	@Override
 	public boolean isJubilant(IAlleleBeeSpecies species, IBeeGenome genome, IBeeHousing housing) {
 		BiomeGenBase biome = housing.getBiome();
-		if (genome.getPrimary().getRequiredBiomeNamePatterns() != null && genome.getPrimary().doesBiomeMatchRequired(biome))
+		if (genome.getPrimary().getRequiredBiomeNamePatterns() != null && !genome.getPrimary().doesBiomeMatchRequired(biome))
 		{
 			return false;
 		}
