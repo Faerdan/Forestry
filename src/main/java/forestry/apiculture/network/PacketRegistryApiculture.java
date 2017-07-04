@@ -10,13 +10,7 @@
  ******************************************************************************/
 package forestry.apiculture.network;
 
-import forestry.apiculture.network.packets.PacketActiveUpdate;
-import forestry.apiculture.network.packets.PacketBeeLogicActive;
-import forestry.apiculture.network.packets.PacketBeeLogicActiveEntity;
-import forestry.apiculture.network.packets.PacketBeeLogicEntityRequest;
-import forestry.apiculture.network.packets.PacketCandleUpdate;
-import forestry.apiculture.network.packets.PacketHabitatBiomePointer;
-import forestry.apiculture.network.packets.PacketImprintSelectionResponse;
+import forestry.apiculture.network.packets.*;
 import forestry.core.network.PacketRegistry;
 
 public class PacketRegistryApiculture extends PacketRegistry {
@@ -24,6 +18,7 @@ public class PacketRegistryApiculture extends PacketRegistry {
 	public void registerPackets() {
 		registerClientPacket(new PacketImprintSelectionResponse());
 		registerClientPacket(new PacketActiveUpdate());
+		registerClientPacket(new PacketShaftPowerUpdate());
 		registerClientPacket(new PacketBeeLogicActive());
 		registerClientPacket(new PacketBeeLogicActiveEntity());
 		registerClientPacket(new PacketHabitatBiomePointer());

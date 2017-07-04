@@ -20,7 +20,7 @@ public class TileAlvearyHeater extends TileAlvearyClimatiser {
 		super(definition, "alveary heater", 16);
 	}
 
-	private static class HeaterDefinition implements IClimitiserDefinition {
+	private static class HeaterDefinition implements IClimatiserDefinition {
 
 		@Override
 		public float getChangePerTransfer() {

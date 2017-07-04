@@ -13,6 +13,7 @@ package forestry.plugins;
 import java.util.ArrayList;
 import java.util.List;
 
+import buildcraft.api.core.BCLog;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -303,6 +304,7 @@ public class PluginArboriculture extends ForestryPlugin {
 			int seedOilMultiplier = ForestryAPI.activeMode.getIntegerSetting("squeezer.liquid.seed");
 			int juiceMultiplier = ForestryAPI.activeMode.getIntegerSetting("squeezer.liquid.apple");
 			int mulchMultiplier = ForestryAPI.activeMode.getIntegerSetting("squeezer.mulch.apple");
+			BCLog.logger.info("squeezer setup: " + ForestryAPI.activeMode.toString() + " seedOilMultiplier " + seedOilMultiplier);
 			ItemStack mulch = new ItemStack(PluginCore.items.mulch);
 			RecipeManagers.squeezerManager.addRecipe(20, new ItemStack[]{EnumFruit.CHERRY.getStack()}, Fluids.SEEDOIL.getFluid(5 * seedOilMultiplier), mulch, 5);
 			RecipeManagers.squeezerManager.addRecipe(60, new ItemStack[]{EnumFruit.WALNUT.getStack()}, Fluids.SEEDOIL.getFluid(18 * seedOilMultiplier), mulch, 5);

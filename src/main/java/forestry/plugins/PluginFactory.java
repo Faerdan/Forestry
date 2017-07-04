@@ -10,6 +10,7 @@
  ******************************************************************************/
 package forestry.plugins;
 
+import buildcraft.api.core.BCLog;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.init.Blocks;
@@ -280,6 +281,7 @@ public class PluginFactory extends ForestryPlugin {
 				PluginCore.items.mulch.getItemStack(), appleMulchAmount);
 		int seedOilAmount = ForestryAPI.activeMode.getIntegerSetting("squeezer.liquid.seed");
 		FluidStack seedOil = Fluids.SEEDOIL.getFluid(seedOilAmount);
+		BCLog.logger.info("squeezer setup: " + ForestryAPI.activeMode.toString() + " seedOilAmount " + seedOilAmount);
 		RecipeManagers.squeezerManager.addRecipe(10, new ItemStack[]{new ItemStack(Items.wheat_seeds)}, seedOil);
 		RecipeManagers.squeezerManager.addRecipe(10, new ItemStack[]{new ItemStack(Items.pumpkin_seeds)}, seedOil);
 		RecipeManagers.squeezerManager.addRecipe(10, new ItemStack[]{new ItemStack(Items.melon_seeds)}, seedOil);

@@ -12,6 +12,9 @@ package forestry.factory.tiles;
 
 import java.io.IOException;
 
+import buildcraft.api.core.BCLog;
+import forestry.api.core.ForestryAPI;
+import forestry.core.fluids.Fluids;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -162,6 +165,7 @@ public class TileSqueezer extends TilePowered implements ISocketable, ISidedInve
 		if (currentRecipe != matchingRecipe) {
 			currentRecipe = matchingRecipe;
 			if (currentRecipe != null) {
+				BCLog.logger.info("squeezer recipe: " + ForestryAPI.activeMode.toString() + " amount " + currentRecipe.getFluidOutput().amount + " fliud " + currentRecipe.getFluidOutput().toString());
 				int recipeTime = currentRecipe.getProcessingTime();
 				setTicksPerWorkCycle(recipeTime * TICKS_PER_RECIPE_TIME);
 				//setEnergyPerWorkCycle(recipeTime * ENERGY_PER_RECIPE_TIME);

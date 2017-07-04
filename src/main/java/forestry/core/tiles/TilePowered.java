@@ -12,10 +12,12 @@ package forestry.core.tiles;
 
 import java.io.IOException;
 
-import Reika.RotaryCraft.API.Power.IShaftPowerReceiver;
+import Reika.RotaryCraft.API.Power.IShaftPowerInputCaller;
+import Reika.RotaryCraft.API.Power.ShaftPowerInputManager;
 import buildcraft.api.core.BCLog;
 import net.minecraft.nbt.NBTTagCompound;
 
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.common.Optional;
@@ -32,10 +34,10 @@ import forestry.core.render.TankRenderInfo;
 import buildcraft.api.tiles.IHasWork;
 
 @Optional.Interface(iface = "buildcraft.api.tiles.IHasWork", modid = "BuildCraftAPI|tiles")
-public abstract class TilePowered extends TileBase implements IRenderableTile, IHasWork, ISpeedUpgradable, IStreamableGui, IShaftPowerReceiver {
+public abstract class TilePowered extends TileBase implements IShaftPowerInputCaller, IRenderableTile, IHasWork, ISpeedUpgradable, IStreamableGui {
 	private static final int WORK_TICK_INTERVAL = 5; // one Forestry work tick happens every WORK_TICK_INTERVAL game ticks
 
-	//private final EnergyManager energyManager;
+	private final ShaftPowerInputManager shaftPowerInputManager;
 
 	private int workCounter;
 	private int ticksPerWorkCycle;
@@ -52,18 +54,10 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	// the number of work ticks that this tile has had no power
 	private int noPowerTime = 0;
 
-	private String nameKey;
-
 	protected TilePowered(String hintKey, int minTorque, int minOmega, int minPower) {
 		super(hintKey);
-		//this.energyManager = new EnergyManager(maxTransfer, capacity);
-		//this.energyManager.setReceiveOnly();
 
-		nameKey = hintKey;
-
-		setMinTorque(minTorque);
-		setMinOmega(minOmega);
-		setMinPower(minPower);
+		shaftPowerInputManager = new ShaftPowerInputManager(this, hintKey, minTorque, minOmega, minPower);
 
 		this.ticksPerWorkCycle = 4;
 
@@ -82,9 +76,9 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	public void setPowerToSpeedBoost(int maxTorque, int maxOmega, int maxPower, float speedMultiplier)
 	{
 		rotaryHasSpeedBoost = true;
-		rotarySpeedBoostMaxTorque = (maxTorque >= getMinTorque()) ? maxTorque : getMinTorque();
-		rotarySpeedBoostMaxOmega = (maxOmega >= getMinOmega()) ? maxOmega : getMinOmega();
-		rotarySpeedBoostMaxPower = (maxPower >= getMinPower()) ? maxPower : getMinPower();
+		rotarySpeedBoostMaxTorque = (maxTorque >= getMinTorque(0)) ? maxTorque : getMinTorque(0);
+		rotarySpeedBoostMaxOmega = (maxOmega >= getMinOmega(0)) ? maxOmega : getMinOmega(0);
+		rotarySpeedBoostMaxPower = (maxPower >= getMinPower(0)) ? maxPower : getMinPower(0);
 		rotarySpeedBoostMultiplier = speedMultiplier;
 	}
 
@@ -94,19 +88,19 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		if (rotaryHasSpeedBoost)
 		{
 			float torqueScaler = 1;
-			if (rotarySpeedBoostMaxTorque > getMinTorque() && getTorque() > getMinTorque())
+			if (rotarySpeedBoostMaxTorque > getMinTorque(0) && getTorque() > getMinTorque(0))
 			{
-				torqueScaler = (float)(getTorque() - getMinTorque()) / (float)(rotarySpeedBoostMaxTorque - getMinTorque());
+				torqueScaler = (float)(getTorque() - getMinTorque(0)) / (float)(rotarySpeedBoostMaxTorque - getMinTorque(0));
 			}
 			float omegaScaler = 1;
-			if (rotarySpeedBoostMaxOmega > getMinOmega() && getOmega() > getMinOmega())
+			if (rotarySpeedBoostMaxOmega > getMinOmega(0) && getOmega() > getMinOmega(0))
 			{
-				omegaScaler = (float)(getOmega() - getMinOmega()) / (float)(rotarySpeedBoostMaxOmega - getMinOmega());
+				omegaScaler = (float)(getOmega() - getMinOmega(0)) / (float)(rotarySpeedBoostMaxOmega - getMinOmega(0));
 			}
 			float powerScaler = 1;
-			if (rotarySpeedBoostMaxPower > getMinPower() && getPower() > getMinPower())
+			if (rotarySpeedBoostMaxPower > getMinPower(0) && getPower() > getMinPower(0))
 			{
-				powerScaler = (float)(getPower() - getMinPower()) / (float)(rotarySpeedBoostMaxPower - getMinPower());
+				powerScaler = (float)(getPower() - getMinPower(0)) / (float)(rotarySpeedBoostMaxPower - getMinPower(0));
 			}
 			rotaryCurrentSpeedBoostMultiplier = 1F + ((rotarySpeedBoostMultiplier - 1F) * Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)));
 			//BCLog.logger.info("TilePowered torqueScaler: " + torqueScaler + ", omegaScaler: " + omegaScaler + ", powerScaler: " + powerScaler + ", min: " + Math.min(torqueScaler, Math.min(omegaScaler, powerScaler)) + ", current: " + rotaryCurrentSpeedBoostMultiplier);
@@ -135,15 +129,21 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	public abstract boolean hasWork();
 
 	@Override
+	protected void updateClientSide() {
+		shaftPowerInputManager.update();
+	}
+
+	@Override
 	protected void updateServerSide() {
 		super.updateServerSide();
+
+		shaftPowerInputManager.update();
 
 		if (!updateOnInterval(WORK_TICK_INTERVAL)) {
 			return;
 		}
 
 		IErrorLogic errorLogic = getErrorLogic();
-
 
 		// Disabled redstone disabling...
 		/*boolean disabled = isRedstoneActivated();
@@ -153,7 +153,6 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		}*/
 
 		if (!hasWork()) {
-			noInputMachine();
 			return;
 		}
 
@@ -162,7 +161,7 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		int ticksPerWorkCycle = getTicksPerWorkCycle();
 
 		if (workCounter < ticksPerWorkCycle) {
-			if (rotaryTorque >= getMinTorque(getTorque()) && rotaryOmega >= getMinOmega(getOmega()) && rotaryPower >= getMinPower(getPower())) {
+			if (shaftPowerInputManager.isStagePowered(0)) {
 				//BCLog.logger.info("TilePowered (CanWork) Omega: " + rotaryOmega + ",Torque: " + rotaryTorque + ", Power: " + rotaryPower);
 				errorLogic.setCondition(false, EnumErrorCode.NO_POWER);
 				workCounter++;
@@ -180,7 +179,6 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 				workCounter = 0;
 			}
 		}
-		noInputMachine();
 	}
 
 	protected abstract boolean workCycle();
@@ -195,21 +193,43 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 	}
 
 	@Override
+	public void writeData(DataOutputStreamForestry stream) throws IOException {
+		super.writeData(stream);
+
+		stream.writeInt(shaftPowerInputManager.getTorque());
+		stream.writeInt(shaftPowerInputManager.getOmega());
+		stream.writeBoolean(shaftPowerInputManager.hasMismatchedInputs());
+
+		for (int stageIndex = 0; stageIndex < getStageCount(); stageIndex++)
+		{
+			stream.writeInt(getMinTorque(stageIndex));
+			stream.writeInt(getMinOmega(stageIndex));
+			stream.writeLong(getMinPower(stageIndex));
+		}
+	}
+
+	@Override
+	public void readData(DataInputStreamForestry stream) throws IOException {
+		super.readData(stream);
+
+		shaftPowerInputManager.setState(stream.readInt(), stream.readInt(), stream.readBoolean());
+
+		for (int stageIndex = 0; stageIndex < getStageCount(); stageIndex++)
+		{
+			shaftPowerInputManager.setMinTorque(stageIndex, stream.readInt());
+			shaftPowerInputManager.setMinOmega(stageIndex, stream.readInt());
+			shaftPowerInputManager.setMinPower(stageIndex, stream.readLong());
+		}
+	}
+
+	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		nbt.setInteger("torque", getTorque());
-		nbt.setInteger("omega", getOmega());
-		nbt.setLong("power", getPower());
-		//energyManager.writeToNBT(nbt);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		setTorque(nbt.getInteger("torque"));
-		setOmega(nbt.getInteger("omega"));
-		setPower(nbt.getLong("power"));
-		//energyManager.readFromNBT(nbt);
 	}
 
 	@Override
@@ -245,163 +265,87 @@ public abstract class TilePowered extends TileBase implements IRenderableTile, I
 		return TankRenderInfo.EMPTY;
 	}
 
-	/* IPowerHandler */
-	/*@Override
-	public EnergyManager getEnergyManager() {
-		return energyManager;
-	}
-
-	@Override
-	public int receiveEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
-		return energyManager.receiveEnergy(from, maxReceive, simulate);
-	}
-
-	@Override
-	public int extractEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
-		return energyManager.extractEnergy(from, maxReceive, simulate);
-	}
-
-	@Override
-	public int getEnergyStored(ForgeDirection from) {
-		return energyManager.getEnergyStored(from);
-	}
-
-	@Override
-	public int getMaxEnergyStored(ForgeDirection from) {
-		return energyManager.getMaxEnergyStored(from);
-	}
-
-	@Override
-	public boolean canConnectEnergy(ForgeDirection from) {
-		return energyManager.canConnectEnergy(from);
-	}*/
 
 	/* Rotary Power */
-	private int rotaryMinTorque = 1;
-	private int rotaryMinOmega = 1;
-	private long rotaryMinPower = 1;
-
-	private int rotaryOmega;
-	private int rotaryTorque;
-	private long rotaryPower;
-	private int rotaryIORenderAlpha;
 
 	@Override
-	public void setOmega(int i) {
-		//BCLog.logger.info("Quarry setOmega: " + i);
-		rotaryOmega = i;
+	public void onPowerChange(ShaftPowerInputManager shaftPowerInputManager) {
+		this.setNeedsNetworkUpdate();
+		//sendNetworkUpdate();
 	}
 
 	@Override
-	public void setTorque(int i) {
-		//BCLog.logger.info("Quarry setTorque: " + i);
-		rotaryTorque = i;
+	public TileEntity getTileEntity() {
+		return this;
 	}
 
 	@Override
-	public void setPower(long l) {
-		//BCLog.logger.info("Quarry setPower: " + l);
-		rotaryPower = l;
+	public boolean addPower(int addTorque, int addOmega, long addPower, ForgeDirection inputDirection) {
+		return shaftPowerInputManager != null && shaftPowerInputManager.addPower(addTorque, addOmega, addPower, inputDirection);
 	}
 
 	@Override
-	public void noInputMachine() {
-		rotaryOmega = 0;
-		rotaryTorque = 0;
-		rotaryPower = 0;
-	}
-
-	@Override
-	public boolean canReadFrom(ForgeDirection forgeDirection) {
-		return true; // (forgeDirection == ForgeDirection.EAST || forgeDirection == ForgeDirection.WEST || forgeDirection == ForgeDirection.NORTH);
-	}
-
-	@Override
-	public boolean isReceiving() {
-		return true;
-	}
-
-	@Override
-	public int getMinTorque() {
-		return getMinTorque(getTorque());
-	}
-
-	@Override
-	public int getMinTorque(int i) {
-		return (rotaryMinTorque * (int)Math.ceil(powerMultiplier));
-	}
-
-	@Override
-	public int getMinOmega() {
-		return getMinOmega(getOmega());
-	}
-
-	@Override
-	public int getMinOmega(int i) {
-		return rotaryMinOmega;
-	}
-
-	@Override
-	public long getMinPower() {
-		return getMinPower(getPower());
-	}
-
-	@Override
-	public long getMinPower(long l) {
-		return rotaryMinPower;
-	}
-
-	@Override
-	public int getOmega() {
-		return rotaryOmega;
-	}
-
-	@Override
-	public int getTorque() {
-		return rotaryTorque;
-	}
-
-	@Override
-	public long getPower() {
-		return rotaryPower;
-	}
-
-	@Override
-	public String getName() {
-		return nameKey;
-	}
-
-	@Override
-	public int getIORenderAlpha() {
-		return rotaryIORenderAlpha;
+	public int getStageCount() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getStageCount() : 0;
 	}
 
 	@Override
 	public void setIORenderAlpha(int i) {
-		rotaryIORenderAlpha = i;
+		if (shaftPowerInputManager != null) shaftPowerInputManager.setIORenderAlpha(i);
 	}
 
 	@Override
-	public void setMinTorque(int i) {
-		if (i >= 1)
-		{
-			rotaryMinTorque = i;
-		}
+	public boolean canReadFrom(ForgeDirection forgeDirection) {
+		return true;
 	}
 
 	@Override
-	public void setMinOmega(int i) {
-		if (i >= 1)
-		{
-			rotaryMinOmega = i;
-		}
+	public boolean hasMismatchedInputs() {
+		return shaftPowerInputManager != null && shaftPowerInputManager.hasMismatchedInputs();
 	}
 
 	@Override
-	public void setMinPower(long l) {
-		if (l >= 1)
-		{
-			rotaryMinPower = l;
-		}
+	public boolean isReceiving() {
+		return shaftPowerInputManager != null && shaftPowerInputManager.isReceiving();
+	}
+
+	@Override
+	public int getMinTorque(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinTorque(stageIndex) : 1;
+	}
+
+	@Override
+	public int getMinOmega(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinOmega(stageIndex) : 1;
+	}
+
+	@Override
+	public long getMinPower(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinPower(stageIndex) : 1;
+	}
+
+	@Override
+	public long getPower() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getPower() : 0;
+	}
+
+	@Override
+	public int getOmega() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getOmega() : 0;
+	}
+
+	@Override
+	public int getTorque() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getTorque() : 0;
+	}
+
+	@Override
+	public String getName() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getName() : "[Forestry]";
+	}
+
+	@Override
+	public int getIORenderAlpha() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getIORenderAlpha() : 0;
 	}
 }

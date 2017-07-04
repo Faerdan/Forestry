@@ -20,7 +20,7 @@ public class TileAlvearyFan extends TileAlvearyClimatiser {
 		super(definition, "alveary fan", 4);
 	}
 
-	private static class FanDefinition implements IClimitiserDefinition {
+	private static class FanDefinition implements IClimatiserDefinition {
 
 		@Override
 		public float getChangePerTransfer() {
