@@ -43,6 +43,7 @@ public enum PacketIdClient implements IPacketId {
 
 	// Apiculture
 	TILE_FORESTRY_ACTIVE,
+	TILE_SHAFT_POWER,
 	BEE_LOGIC_ACTIVE,
 	BEE_LOGIC_ACTIVE_ENTITY,
 	HABITAT_BIOME_POINTER,

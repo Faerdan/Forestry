@@ -41,7 +41,7 @@ public class PacketShaftPowerUpdate extends PacketCoordinates implements IForest
 
 	@Override
 	public PacketIdClient getPacketId() {
-		return PacketIdClient.TILE_FORESTRY_ACTIVE;
+		return PacketIdClient.TILE_SHAFT_POWER;
 	}
 
 	@Override
