@@ -196,15 +196,10 @@ public abstract class TilePowered extends TileBase implements IShaftPowerInputCa
 	public void writeData(DataOutputStreamForestry stream) throws IOException {
 		super.writeData(stream);
 
-		stream.writeInt(shaftPowerInputManager.getTorque());
-		stream.writeInt(shaftPowerInputManager.getOmega());
-		stream.writeBoolean(shaftPowerInputManager.hasMismatchedInputs());
-
-		for (int stageIndex = 0; stageIndex < getStageCount(); stageIndex++)
-		{
-			stream.writeInt(getMinTorque(stageIndex));
-			stream.writeInt(getMinOmega(stageIndex));
-			stream.writeLong(getMinPower(stageIndex));
+		stream.writeBoolean(shaftPowerInputManager.getPower() > 0);
+		if (shaftPowerInputManager.getPower() > 0) {
+			stream.writeInt(shaftPowerInputManager.getTorque());
+			stream.writeInt(shaftPowerInputManager.getOmega());
 		}
 	}
 
@@ -212,13 +207,13 @@ public abstract class TilePowered extends TileBase implements IShaftPowerInputCa
 	public void readData(DataInputStreamForestry stream) throws IOException {
 		super.readData(stream);
 
-		shaftPowerInputManager.setState(stream.readInt(), stream.readInt(), stream.readBoolean());
-
-		for (int stageIndex = 0; stageIndex < getStageCount(); stageIndex++)
+		if (stream.readBoolean())
 		{
-			shaftPowerInputManager.setMinTorque(stageIndex, stream.readInt());
-			shaftPowerInputManager.setMinOmega(stageIndex, stream.readInt());
-			shaftPowerInputManager.setMinPower(stageIndex, stream.readLong());
+			shaftPowerInputManager.setState(stream.readInt(), stream.readInt());
+		}
+		else
+		{
+			shaftPowerInputManager.setState(0, 0);
 		}
 	}
 
@@ -297,11 +292,6 @@ public abstract class TilePowered extends TileBase implements IShaftPowerInputCa
 	@Override
 	public boolean canReadFrom(ForgeDirection forgeDirection) {
 		return true;
-	}
-
-	@Override
-	public boolean hasMismatchedInputs() {
-		return shaftPowerInputManager != null && shaftPowerInputManager.hasMismatchedInputs();
 	}
 
 	@Override

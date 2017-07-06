@@ -34,7 +34,7 @@ public class PacketShaftPowerUpdate extends PacketCoordinates implements IForest
 
 	public PacketShaftPowerUpdate(IActivatable tile, IShaftPowerInputCaller caller) {
 		super(tile.getCoordinates());
-		BCLog.logger.info("alveary do PacketShaftPowerUpdate");
+		//BCLog.logger.info("alveary do PacketShaftPowerUpdate");
 		this.torque = caller.getTorque();
 		this.omega = caller.getOmega();
 	}
@@ -47,26 +47,35 @@ public class PacketShaftPowerUpdate extends PacketCoordinates implements IForest
 	@Override
 	protected void writeData(DataOutputStreamForestry data) throws IOException {
 		super.writeData(data);
-		BCLog.logger.info("Write packet for alveary power t: " + torque + ", o: " + omega);
-		data.writeInt(torque);
-		data.writeInt(omega);
+		//BCLog.logger.info("Write packet for alveary power t: " + torque + ", o: " + omega);
+		data.writeBoolean(torque > 0 && omega > 0);
+		if (torque > 0 && omega > 0)
+		{
+			data.writeInt(torque);
+			data.writeInt(omega);
+		}
 	}
 
 	@Override
 	public void readData(DataInputStreamForestry data) throws IOException {
 		super.readData(data);
-		BCLog.logger.info("Read packet for alveary power t: " + torque + ", o: " + omega);
-		torque = data.readInt();
-		omega = data.readInt();
+		//BCLog.logger.info("Read packet for alveary power t: " + torque + ", o: " + omega);
+		torque = 0;
+		omega = 0;
+		if (data.readBoolean())
+		{
+			torque = data.readInt();
+			omega = data.readInt();
+		}
 	}
 
 	@Override
 	public void onPacketData(DataInputStreamForestry data, EntityPlayer player) {
 		TileEntity tile = getTarget(Proxies.common.getRenderWorld());
-		BCLog.logger.info("Open packet for alveary power t: " + torque + ", o: " + omega);
+		//BCLog.logger.info("Open packet for alveary power t: " + torque + ", o: " + omega);
 		if (tile instanceof IShaftPowerInputCaller) {
-			BCLog.logger.info("Open packet tile found for alveary power t: " + torque + ", o: " + omega);
-			((IShaftPowerInputCaller) tile).addPower(torque, omega, (long)torque * (long)omega, null);
+			//BCLog.logger.info("Open packet tile found for alveary power t: " + torque + ", o: " + omega);
+			((IShaftPowerInputCaller)tile).addPower(torque, omega, (long)torque * (long)omega, null);
 		}
 	}
 }

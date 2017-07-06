@@ -129,7 +129,7 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IShaf
 
 	@Override
 	public void onPowerChange(ShaftPowerInputManager shaftPowerInputManager) {
-		BCLog.logger.info("alveary onPowerChange");
+		//BCLog.logger.info("alveary onPowerChange");
 		if (worldObj != null && !worldObj.isRemote) {
 			Proxies.net.sendNetworkPacket(new PacketShaftPowerUpdate(this, this), worldObj);
 		}
@@ -160,11 +160,6 @@ public abstract class TileAlvearyClimatiser extends TileAlveary implements IShaf
 	@Override
 	public boolean canReadFrom(ForgeDirection forgeDirection) {
 		return true;
-	}
-
-	@Override
-	public boolean hasMismatchedInputs() {
-		return shaftPowerInputManager != null && shaftPowerInputManager.hasMismatchedInputs();
 	}
 
 	@Override
