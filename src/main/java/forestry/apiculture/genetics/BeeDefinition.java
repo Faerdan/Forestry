@@ -929,6 +929,7 @@ public enum BeeDefinition implements IBeeDefinition {
         @Override
         protected void registerMutations() {
             // can only be bought from Apiarist Villagers
+            registerMutation(AGRARIAN, AUSTERE, 12);
         }
     },
     SECLUDED(BeeBranchDefinition.MONASTIC, "contractus", true, new Color(0x7b6634), new Color(0xfff7b6)) {
