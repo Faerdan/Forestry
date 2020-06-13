@@ -211,13 +211,16 @@ public class PluginCore extends ForestryPlugin {
 		RecipeUtil.addRecipe(ForestryAPI.activeMode.getStackSetting("recipe.output.can"), " # ", "# #", '#', "ingotTin");
 
 		// / GEARS
-		ArrayList<ItemStack> stoneGear = OreDictionary.getOres("gearStone");
+		/*ArrayList<ItemStack> stoneGear = OreDictionary.getOres("gearStone");
 		Object gearCenter;
 		if (!stoneGear.isEmpty()) {
 			gearCenter = "gearStone";
 		} else {
 			gearCenter = "ingotCopper";
-		}
+		}*/
+
+		String gearCenter = "gearStone";
+
 		RecipeUtil.addRecipe(items.gearBronze, " # ", "#X#", " # ", '#', "ingotBronze", 'X', gearCenter);
 		RecipeUtil.addRecipe(items.gearCopper, " # ", "#X#", " # ", '#', "ingotCopper", 'X', gearCenter);
 		RecipeUtil.addRecipe(items.gearTin, " # ", "#X#", " # ", '#', "ingotTin", 'X', gearCenter);
