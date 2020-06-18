@@ -10,8 +10,11 @@
  ******************************************************************************/
 package forestry.farming.tiles;
 
+import Reika.RotaryCraft.API.Power.IShaftPowerInputCaller;
+import Reika.RotaryCraft.API.Power.ShaftPowerInputManager;
 import net.minecraft.nbt.NBTTagCompound;
 
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import forestry.api.multiblock.IFarmComponent;
@@ -19,53 +22,60 @@ import forestry.api.multiblock.IFarmController;
 import forestry.core.tiles.IPowerHandler;
 import forestry.energy.EnergyManager;
 
-public class TileFarmGearbox extends TileFarm implements IPowerHandler, IFarmComponent.Active {
+
+public class TileFarmGearbox extends TileFarm implements IShaftPowerInputCaller, IFarmComponent.Active {
 
 	private static final int WORK_CYCLES = 4;
-	private static final int ENERGY_PER_OPERATION = WORK_CYCLES * 50;
+	//private static final int ENERGY_PER_OPERATION = WORK_CYCLES * 50;
 
-	private final EnergyManager energyManager;
+	private final ShaftPowerInputManager shaftPowerInputManager;
 
 	private int activationDelay = 0;
 	private int previousDelays = 0;
 	private int workCounter;
 
 	public TileFarmGearbox() {
-		energyManager = new EnergyManager(200, 10000);
+
+		shaftPowerInputManager = new ShaftPowerInputManager(this, "Farm Gearbox", 128, 0, 16384);
 	}
 
 	/* SAVING & LOADING */
 	@Override
 	public void readFromNBT(NBTTagCompound nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
-		energyManager.readFromNBT(nbttagcompound);
 
 		activationDelay = nbttagcompound.getInteger("ActivationDelay");
 		previousDelays = nbttagcompound.getInteger("PrevDelays");
+
+		shaftPowerInputManager.setState(nbttagcompound.getInteger("torque"), nbttagcompound.getInteger("omega"));
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbttagcompound) {
 		super.writeToNBT(nbttagcompound);
-		energyManager.writeToNBT(nbttagcompound);
 
 		nbttagcompound.setInteger("ActivationDelay", activationDelay);
 		nbttagcompound.setInteger("PrevDelays", previousDelays);
+
+		nbttagcompound.setInteger("torque", shaftPowerInputManager.getTorque());
+		nbttagcompound.setInteger("omega", shaftPowerInputManager.getOmega());
 	}
 
 	@Override
 	public void updateServer(int tickCount) {
-		if (energyManager.getTotalEnergyStored() <= 0) {
-			return;
-		}
+		shaftPowerInputManager.update();
 
 		if (activationDelay > 0) {
 			activationDelay--;
 			return;
 		}
 
+		if (!shaftPowerInputManager.isStagePowered(0)) {
+			return;
+		}
+
 		// Hard limit to 4 cycles / second.
-		if (workCounter < WORK_CYCLES && energyManager.consumeEnergyToDoWork(WORK_CYCLES, ENERGY_PER_OPERATION)) {
+		if (workCounter < WORK_CYCLES) {
 			workCounter++;
 		}
 
@@ -82,40 +92,92 @@ public class TileFarmGearbox extends TileFarm implements IPowerHandler, IFarmCom
 		}
 	}
 
+	public boolean isPowered()
+	{
+		return shaftPowerInputManager.isStagePowered(0);
+	}
+
 	@Override
 	public void updateClient(int tickCount) {
+		shaftPowerInputManager.update();
+	}
+
+
+	/* Rotary Power */
+
+	@Override
+	public void onPowerChange(ShaftPowerInputManager shaftPowerInputManager) {
 
 	}
 
-	/* IPowerHandler */
 	@Override
-	public EnergyManager getEnergyManager() {
-		return energyManager;
+	public TileEntity getTileEntity() {
+		return this;
 	}
 
 	@Override
-	public int receiveEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
-		return energyManager.receiveEnergy(from, maxReceive, simulate);
+	public boolean addPower(int addTorque, int addOmega, long addPower, ForgeDirection inputDirection) {
+		return shaftPowerInputManager != null && shaftPowerInputManager.addPower(addTorque, addOmega, addPower, inputDirection);
 	}
 
 	@Override
-	public int extractEnergy(ForgeDirection from, int maxExtract, boolean simulate) {
-		return energyManager.extractEnergy(from, maxExtract, simulate);
+	public int getStageCount() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getStageCount() : 0;
 	}
 
 	@Override
-	public int getEnergyStored(ForgeDirection from) {
-		return energyManager.getEnergyStored(from);
+	public void setIORenderAlpha(int i) {
+		if (shaftPowerInputManager != null) shaftPowerInputManager.setIORenderAlpha(i);
 	}
 
 	@Override
-	public int getMaxEnergyStored(ForgeDirection from) {
-		return energyManager.getMaxEnergyStored(from);
+	public boolean canReadFrom(ForgeDirection forgeDirection) {
+		return true;
 	}
 
 	@Override
-	public boolean canConnectEnergy(ForgeDirection from) {
-		return energyManager.canConnectEnergy(from);
+	public boolean isReceiving() {
+		return shaftPowerInputManager != null && shaftPowerInputManager.isReceiving();
+	}
+
+	@Override
+	public int getMinTorque(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinTorque(stageIndex) : 1;
+	}
+
+	@Override
+	public int getMinOmega(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinOmega(stageIndex) : 1;
+	}
+
+	@Override
+	public long getMinPower(int stageIndex) {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getMinPower(stageIndex) : 1;
+	}
+
+	@Override
+	public long getPower() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getPower() : 0;
+	}
+
+	@Override
+	public int getOmega() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getOmega() : 0;
+	}
+
+	@Override
+	public int getTorque() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getTorque() : 0;
+	}
+
+	@Override
+	public String getName() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getName() : "[Forestry]";
+	}
+
+	@Override
+	public int getIORenderAlpha() {
+		return shaftPowerInputManager != null ? shaftPowerInputManager.getIORenderAlpha() : 0;
 	}
 
 }

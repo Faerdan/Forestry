@@ -265,7 +265,7 @@ public class FarmController extends RectangularMultiblockControllerBase implemen
 		for (Map.Entry<IFarmComponent.Active, Integer> entry : farmActiveComponents.entrySet()) {
 			IFarmComponent.Active farmComponent = entry.getKey();
 			if (farmComponent instanceof TileFarmGearbox) {
-				hasPower |= ((TileFarmGearbox) farmComponent).getEnergyManager().getTotalEnergyStored() > 0;
+				hasPower |= ((TileFarmGearbox) farmComponent).isPowered();
 			}
 
 			int tickOffset = entry.getValue();
