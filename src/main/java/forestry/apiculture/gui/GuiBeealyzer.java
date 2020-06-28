@@ -103,14 +103,14 @@ public class GuiBeealyzer extends GuiAlyzer {
 		textLayout.drawLine(StringUtil.localize("gui.inactive"), COLUMN_2);
 
 		textLayout.newLine();
-		textLayout.newLine();
+		//textLayout.newLine();
 
 		{
 			String customPrimaryBeeKey = "bees.custom.beealyzer." + type.getName() + "." + bee.getGenome().getPrimary().getUnlocalizedName().replace("bees.species.", "");
 			String customSecondaryBeeKey = "bees.custom.beealyzer." + type.getName() + "." + bee.getGenome().getSecondary().getUnlocalizedName().replace("bees.species.", "");
 
 			drawSpeciesRow(StringUtil.localize("gui.species"), bee, EnumBeeChromosome.SPECIES, checkCustomName(customPrimaryBeeKey), checkCustomName(customSecondaryBeeKey));
-			textLayout.newLine();
+			//textLayout.newLine();
 		}
 
 		drawChromosomeRow(StringUtil.localize("gui.lifespan"), bee, EnumBeeChromosome.LIFESPAN);
@@ -120,6 +120,12 @@ public class GuiBeealyzer extends GuiAlyzer {
 		drawChromosomeRow(StringUtil.localize("gui.pollination"), bee, EnumBeeChromosome.FLOWERING);
 		textLayout.newLine();
 		drawChromosomeRow(StringUtil.localize("gui.flowers"), bee, EnumBeeChromosome.FLOWER_PROVIDER);
+		textLayout.newLine();
+
+		drawChromosomeRow(StringUtil.localize("gui.toleratesTemperature"), bee, EnumBeeChromosome.TEMPERATURE_TOLERANCE);
+		textLayout.newLine();
+
+		drawChromosomeRow(StringUtil.localize("gui.toleratesHumidity"), bee, EnumBeeChromosome.HUMIDITY_TOLERANCE);
 		textLayout.newLine();
 
 		textLayout.drawLine(StringUtil.localize("gui.fertility"), COLUMN_0);
