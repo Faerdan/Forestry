@@ -249,6 +249,9 @@ public class PluginCore extends ForestryPlugin {
 		}
 		if (ForestryAPI.activeMode.getStackSetting("recipe.output.fertilizer.ash").stackSize > 0) {
 			RecipeUtil.addRecipe(ForestryAPI.activeMode.getStackSetting("recipe.output.fertilizer.ash"), "###", "#X#", "###", '#', "dustAsh", 'X', "gemApatite");
+			ItemStack result = ForestryAPI.activeMode.getStackSetting("recipe.output.fertilizer.ash");
+			result.stackSize = 1;
+			RecipeUtil.addRecipe(result, "XYZ", "   ", "   ", 'X', "dustAsh", 'Y', "itemFertilizer", 'Z', Items.dye);
 		}
 
 		// Humus
